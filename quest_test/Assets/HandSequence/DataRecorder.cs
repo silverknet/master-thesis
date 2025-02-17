@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using System.Reflection;
 
 /// <summary>
 /// Importer for a OpenXR animated hand sequence, recorded from 
@@ -18,7 +19,7 @@ using System.IO;
 ///
 /// </summary>
 
-public class DataRecorder : MonoBehaviour
+public class DataRecorder :  MonoBehaviour
 {
 
     [SerializeField]
@@ -111,5 +112,27 @@ public class DataRecorder : MonoBehaviour
         }
 
         return null;
+    }
+
+    public void OnValidate()
+    {
+        var skeleton = GetComponent<OVRSkeleton>();
+        if (skeleton != null)
+        {
+            if (skeleton.GetSkeletonType() != _skeletonType)
+            {
+                MethodInfo setSkeletonTypeMethod = typeof(OVRSkeleton).GetMethod("SetSkeletonType",
+                    BindingFlags.Instance | BindingFlags.NonPublic); // Access protected method
+
+                if (setSkeletonTypeMethod != null)
+                {
+                    setSkeletonTypeMethod.Invoke(skeleton, new object[] { _skeletonType });
+                }
+                else
+                {
+                    Debug.LogError("SetSkeletonType() method not found");
+                }
+            }
+        }
     }
 }

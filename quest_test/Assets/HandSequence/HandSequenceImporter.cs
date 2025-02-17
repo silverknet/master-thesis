@@ -25,15 +25,14 @@ using UnityEditor;
 /// </summary>
 [ScriptedImporter(1, new string[] { "hseq" })]
 public class HandSequenceImporter : ScriptedImporter {
-    
-
     public override void OnImportAsset(UnityEditor.AssetImporters.AssetImportContext ctx) {
         using (var file = new FileStream(ctx.assetPath, FileMode.Open, FileAccess.Read))
         using (var reader = new StreamReader(file)) {
             float fileLength = file.Length;
 
             HandSequence handSequence = ScriptableObject.CreateInstance<HandSequence>();
-            handSequence.frames = new List<HandSequence.HandFrame>();
+
+            Debug.Log("import debug log: " + handSequence.frames.Count);
             
             string info = $"Reading particle set file {Path.GetFileName(ctx.assetPath)}";
             EditorUtility.DisplayProgressBar("Importing Hand Sequence", info, 0);
@@ -45,11 +44,11 @@ public class HandSequenceImporter : ScriptedImporter {
                 if (line == null) break; // stop at end of file
                 
 
-                var element = line.Trim().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(float.Parse).ToArray();
+                HandSequence.HandFrame frame = new HandSequence.HandFrame();
 
-                handSequence.frames.Add(new HandSequence.HandFrame());
+                var element = line.Trim().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(float.Parse).ToArray();
                 
-                OVRPlugin.Posef tempRootPose = new OVRPlugin.Posef();
+                HandSequence.posef tempRootPose = new HandSequence.posef();
 
                 tempRootPose.Orientation.x = element[0];
                 tempRootPose.Orientation.y = element[1];
@@ -58,35 +57,38 @@ public class HandSequenceImporter : ScriptedImporter {
                 tempRootPose.Position.x = element[4];
                 tempRootPose.Position.y = element[5];
                 tempRootPose.Position.z = element[6];
-                handSequence.frames[currentFrame].frameData.RootPose = tempRootPose;
+                frame.RootPose = tempRootPose;
 
-                handSequence.frames[currentFrame].frameData.RootScale = element[7];
+                frame.RootScale = element[7];
                 
                 int bones_amount = 26;
                 int start_index = 8;
-                handSequence.frames[currentFrame].frameData.BoneRotations = new OVRPlugin.Quatf[bones_amount]; 
+                frame.BoneRotations = new HandSequence.quatf[bones_amount]; 
                 for(int i = 0; i < bones_amount; i++){
-                    handSequence.frames[currentFrame].frameData.BoneRotations[i].x = element[start_index+i*4];
-                    handSequence.frames[currentFrame].frameData.BoneRotations[i].y = element[start_index+i*4+1];
-                    handSequence.frames[currentFrame].frameData.BoneRotations[i].z = element[start_index+i*4+2];
-                    handSequence.frames[currentFrame].frameData.BoneRotations[i].w = element[start_index+i*4+3];
+                    frame.BoneRotations[i].x = element[start_index+i*4];
+                    frame.BoneRotations[i].y = element[start_index+i*4+1];
+                    frame.BoneRotations[i].z = element[start_index+i*4+2];
+                    frame.BoneRotations[i].w = element[start_index+i*4+3];
                 }
                 int next_element = start_index + bones_amount*4;
 
-                handSequence.frames[currentFrame].frameData.IsDataValid = element[next_element] == 1.0f;
-                handSequence.frames[currentFrame].frameData.IsDataHighConfidence = element[next_element+1] == 1.0f;
+                frame.IsDataValid = element[next_element] == 1.0f;
+                frame.IsDataHighConfidence = element[next_element+1] == 1.0f;
 
                 start_index = next_element+1;
-                handSequence.frames[currentFrame].frameData.BoneTranslations = new OVRPlugin.Vector3f[bones_amount]; 
+                frame.BoneTranslations = new HandSequence.vec3f[bones_amount]; 
                 for(int i = 0; i < bones_amount; i++){
-                    handSequence.frames[currentFrame].frameData.BoneTranslations[i].x = element[start_index+i*3];
-                    handSequence.frames[currentFrame].frameData.BoneTranslations[i].y = element[start_index+i*3+1];
-                    handSequence.frames[currentFrame].frameData.BoneTranslations[i].z = element[start_index+i*3+2];
+                    frame.BoneTranslations[i].x = element[start_index+i*3];
+                    frame.BoneTranslations[i].y = element[start_index+i*3+1];
+                    frame.BoneTranslations[i].z = element[start_index+i*3+2];
                 }
                 next_element = start_index + bones_amount*3;
 
-                handSequence.frames[currentFrame].frameData.SkeletonChangedCount = (int)element[next_element];
+                frame.SkeletonChangedCount = (int)element[next_element];
 
+                frame.time = 0;
+
+                handSequence.frames.Add(frame);
                 
                 ++currentFrame;
                 if (currentFrame % 100 == 0) {
@@ -95,7 +97,11 @@ public class HandSequenceImporter : ScriptedImporter {
                 
             }
 
+            
+
             handSequence.length = currentFrame;
+
+            Debug.Log("import debug log 2: " + handSequence.frames.Count);
             
             ctx.AddObjectToAsset("Hand.Sequence", handSequence);
             ctx.SetMainObject(handSequence);

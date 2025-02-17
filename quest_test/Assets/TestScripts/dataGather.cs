@@ -30,7 +30,6 @@ public class dataGather : MonoBehaviour
         Hand = rightHandObj.GetComponent<OVRHand>();
         _dataProvider = Hand as OVRSkeleton.IOVRSkeletonDataProvider;
 
-        Debug.Log(" * * * * * * * * * * * TESTPRINt* * * * * * * * * * * *");
 
         tipSpheres = new GameObject[5];
 
