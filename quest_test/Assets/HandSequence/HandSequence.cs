@@ -10,6 +10,8 @@ using UnityEngine;
 public class HandSequence : ScriptableObject
 {
      public List<HandFrame> frames;
+     public int length;
+     public bool static_rec = true;
 
      public class HandFrame
      {

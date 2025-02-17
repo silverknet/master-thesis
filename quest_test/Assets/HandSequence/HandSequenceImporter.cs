@@ -6,6 +6,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor.AssetImporters;
 using System.Collections.Generic;
+using UnityEditor;
+
 
 /// <summary>
 /// Importer for a OpenXR animated hand sequence, recorded from 
@@ -32,6 +34,9 @@ public class HandSequenceImporter : ScriptedImporter {
 
             HandSequence handSequence = ScriptableObject.CreateInstance<HandSequence>();
             handSequence.frames = new List<HandSequence.HandFrame>();
+            
+            string info = $"Reading particle set file {Path.GetFileName(ctx.assetPath)}";
+            EditorUtility.DisplayProgressBar("Importing Hand Sequence", info, 0);
 
             int currentFrame = 0;
             while (true)
@@ -43,9 +48,7 @@ public class HandSequenceImporter : ScriptedImporter {
                 var element = line.Trim().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(float.Parse).ToArray();
 
                 handSequence.frames.Add(new HandSequence.HandFrame());
-
-                OVRSkeleton.SkeletonPoseData frameDataTemp;
-
+                
                 OVRPlugin.Posef tempRootPose = new OVRPlugin.Posef();
 
                 tempRootPose.Orientation.x = element[0];
@@ -84,8 +87,20 @@ public class HandSequenceImporter : ScriptedImporter {
 
                 handSequence.frames[currentFrame].frameData.SkeletonChangedCount = (int)element[next_element];
 
-                currentFrame++;
+                
+                ++currentFrame;
+                if (currentFrame % 100 == 0) {
+                    EditorUtility.DisplayProgressBar("Particle Set Importer", info, file.Position / fileLength);
+                }
+                
             }
+
+            handSequence.length = currentFrame;
+            
+            ctx.AddObjectToAsset("Hand.Sequence", handSequence);
+            ctx.SetMainObject(handSequence);
+            
+            EditorUtility.ClearProgressBar();
 
         }
     }

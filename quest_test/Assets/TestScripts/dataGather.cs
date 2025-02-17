@@ -50,15 +50,15 @@ public class dataGather : MonoBehaviour
             //Debug.Log("is valid: " + Hand.IsDataValid);
             //Debug.Log(_dataProvider.GetSkeletonPoseData().BoneTranslations[(int)OVRSkeleton.BoneId.XRHand_IndexTip]);
             
-            if(!Hand.IsDataValid)return;
+            //if(!Hand.IsDataValid)return;
 
-            int id = 0;
-            foreach(GameObject obj in tipSpheres) {
-                
-                obj.transform.position = OVRExtensions.FromFlippedZVector3f(_dataProvider.GetSkeletonPoseData().BoneTranslations[fingerTipsId[id]]);
-
-                id++;
-            }
+            // int id = 0;
+            // foreach(GameObject obj in tipSpheres) {
+            //     
+            //     obj.transform.position = OVRExtensions.FromFlippedZVector3f(_dataProvider.GetSkeletonPoseData().BoneTranslations[fingerTipsId[id]]);
+            //
+            //     id++;
+            // }
             
            
             
