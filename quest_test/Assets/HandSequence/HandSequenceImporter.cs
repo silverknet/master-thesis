@@ -10,7 +10,7 @@ using UnityEditor;
 
 
 /// <summary>
-/// Importer for a OpenXR animated hand sequence, recorded from 
+/// Importer for a OpenXR animated hand sequence,
 /// 
 /// file structure, one line correponds to one frame, all of the below will be on one line
 /// rootpose.orientation.x, rootpose.orientation.y, rootpose.orientation.z, rootpose.orientation.w, 
@@ -21,7 +21,7 @@ using UnityEditor;
 /// isdatahighconfidence(bool),
 /// [bonetranslatations(quatf)*26],
 /// skeletonchangedcount(int)
-///
+/// Time in seconds from start (float)
 /// </summary>
 [ScriptedImporter(1, new string[] { "hseq" })]
 public class HandSequenceImporter : ScriptedImporter {
@@ -31,8 +31,6 @@ public class HandSequenceImporter : ScriptedImporter {
             float fileLength = file.Length;
 
             HandSequence handSequence = ScriptableObject.CreateInstance<HandSequence>();
-
-            Debug.Log("import debug log: " + handSequence.frames.Count);
             
             string info = $"Reading particle set file {Path.GetFileName(ctx.assetPath)}";
             EditorUtility.DisplayProgressBar("Importing Hand Sequence", info, 0);
@@ -47,7 +45,7 @@ public class HandSequenceImporter : ScriptedImporter {
                 HandSequence.HandFrame frame = new HandSequence.HandFrame();
 
                 var element = line.Trim().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(float.Parse).ToArray();
-                
+                Debug.Log("size of list: " + element.Length);
                 HandSequence.posef tempRootPose = new HandSequence.posef();
 
                 tempRootPose.Orientation.x = element[0];
@@ -63,7 +61,7 @@ public class HandSequenceImporter : ScriptedImporter {
                 
                 int bones_amount = 26;
                 int start_index = 8;
-                frame.BoneRotations = new HandSequence.quatf[bones_amount]; 
+                frame.BoneRotations = new Quaternion[bones_amount]; 
                 for(int i = 0; i < bones_amount; i++){
                     frame.BoneRotations[i].x = element[start_index+i*4];
                     frame.BoneRotations[i].y = element[start_index+i*4+1];
@@ -75,8 +73,8 @@ public class HandSequenceImporter : ScriptedImporter {
                 frame.IsDataValid = element[next_element] == 1.0f;
                 frame.IsDataHighConfidence = element[next_element+1] == 1.0f;
 
-                start_index = next_element+1;
-                frame.BoneTranslations = new HandSequence.vec3f[bones_amount]; 
+                start_index = next_element+2;
+                frame.BoneTranslations = new Vector3[bones_amount]; 
                 for(int i = 0; i < bones_amount; i++){
                     frame.BoneTranslations[i].x = element[start_index+i*3];
                     frame.BoneTranslations[i].y = element[start_index+i*3+1];
@@ -86,7 +84,7 @@ public class HandSequenceImporter : ScriptedImporter {
 
                 frame.SkeletonChangedCount = (int)element[next_element];
 
-                frame.time = 0;
+                frame.time = element[next_element + 1];
 
                 handSequence.frames.Add(frame);
                 
@@ -96,12 +94,6 @@ public class HandSequenceImporter : ScriptedImporter {
                 }
                 
             }
-
-            
-
-            handSequence.length = currentFrame;
-
-            Debug.Log("import debug log 2: " + handSequence.frames.Count);
             
             ctx.AddObjectToAsset("Hand.Sequence", handSequence);
             ctx.SetMainObject(handSequence);

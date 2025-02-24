@@ -25,86 +25,96 @@ public class DataRecorder :  MonoBehaviour
     [SerializeField]
     private OVRSkeleton.SkeletonType _skeletonType;
 
-    OVRSkeleton.IOVRSkeletonDataProvider _dataProvider;
+    private HandSequence.SkeletonHandSequenceProvider _dataProvider;
 
+    private bool _isRecording;
 
-    void logBones(){
+    private int _currentRecording;
 
-        string[] logLines = new string[1];
+    private bool _hasRecording;
 
-        logLines[0] = getCurrentFrameLine();
+    private List<HandSequence> _handSequenceRecordings;
+    
+    //Time in second where the last recording started
+    private float _startTime;
+    
+    [SerializeField]
+    private string _fileName;
+    
 
-        File.WriteAllLines("output.hseq", logLines);
+    private void RecordCurrentFrame()
+    {
+        HandSequence.HandFrame data = _dataProvider.GetHandFrameData();
+        data.time = Time.time - _startTime;
+        _handSequenceRecordings[_currentRecording].frames.Add(data);
     }
 
-
-    string getCurrentFrameLine(){
-
-        OVRSkeleton.SkeletonPoseData data = _dataProvider.GetSkeletonPoseData();
-
-        string logLine = data.RootPose.Orientation.x.ToString() + 
-            "," + data.RootPose.Orientation.y.ToString() + 
-            "," + data.RootPose.Orientation.z.ToString() +
-            "," + data.RootPose.Orientation.w.ToString() +
-            "," + data.RootPose.Position.x.ToString() + 
-            "," + data.RootPose.Position.y.ToString() +
-            "," + data.RootPose.Position.z.ToString() +
-            "," + data.RootScale.ToString();
-            
-        OVRPlugin.Quatf[] boneRotations = data.BoneRotations;
-        for(int i = 0; i < boneRotations.Length; i++){
-            logLine += "," + boneRotations[i].ToString();
-        }
-
-        logLine += "," + (data.IsDataValid ? "1" : "0"); 
-        logLine += "," + (data.IsDataHighConfidence ? "1" : "0"); 
-
-        OVRPlugin.Vector3f[] boneTranslations = data.BoneTranslations;
-        for(int i = 0; i < boneTranslations.Length; i++){
-            logLine += "," + boneTranslations[i].ToString();
-        }
-
-        logLine += "," + data.SkeletonChangedCount.ToString();
-
-        return logLine.Replace(" ", "");;
-
-    }
-
-    // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.V)) {
-            logBones();
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            if (!_isRecording)
+            {
+                //start new recording
+                _startTime = Time.time;
+                _hasRecording = true;
+                _handSequenceRecordings.Add(new HandSequence());
+            }
+            else
+            {
+                //Stop recording
+                _currentRecording += 1;
+            }
+
+            _isRecording = !_isRecording;
+        }  
+        
+        if (_isRecording) {
+            RecordCurrentFrame();
         }
     }
     void Start()
     {
+        _isRecording = false;
+        _currentRecording = 0;
+        
         if (_dataProvider == null)
         {
-            Debug.Log("Looking for data provider * * * * * * * * ** * * * ** * * " ); 
             var foundDataProvider = SearchSkeletonDataProvider();
             if (foundDataProvider != null)
             {
-                Debug.Log("data provider found *** * * * * ** * * * * ** *");
                 _dataProvider = foundDataProvider;
                 if (_dataProvider is MonoBehaviour mb)
                 {
                     Debug.Log($"Found IOVRSkeletonDataProvider reference in {mb.name} due to unassigned field.");
                 }
             }else{
-                Debug.Log("didnt find it* * * * * * * * ** * * * ** * * " ); 
+                Debug.LogWarning("didn't find a data provider for recording" ); 
             }
         }
     }
 
-    internal  OVRSkeleton.IOVRSkeletonDataProvider SearchSkeletonDataProvider()
+    void OnApplicationQuit()
     {
+        if(_hasRecording) ExportFiles();
+    }
 
-        var oldProviders = gameObject.GetComponentsInParent<OVRSkeleton.IOVRSkeletonDataProvider>(true);
+    private void ExportFiles()
+    {
+        int nr = 0;
+        foreach (var handSequence in _handSequenceRecordings)
+        {
+            string filename = _fileName + "(" + nr + ")";
+            HandSequenceExporter.Export(handSequence, filename);
+            nr++;
+        }
+    }
+
+    internal HandSequence.SkeletonHandSequenceProvider SearchSkeletonDataProvider()
+    {
+        var oldProviders = gameObject.GetComponentsInParent<HandSequence.SkeletonHandSequenceProvider>();
         foreach (var dataProvider in oldProviders)
         {
-            Debug.Log("in loop* * * * * * * * ** * * * ** * * " ); 
- 
             if (dataProvider.GetSkeletonType() == _skeletonType)
             {
                 return dataProvider;
@@ -114,25 +124,25 @@ public class DataRecorder :  MonoBehaviour
         return null;
     }
 
-    public void OnValidate()
-    {
-        var skeleton = GetComponent<OVRSkeleton>();
-        if (skeleton != null)
-        {
-            if (skeleton.GetSkeletonType() != _skeletonType)
-            {
-                MethodInfo setSkeletonTypeMethod = typeof(OVRSkeleton).GetMethod("SetSkeletonType",
-                    BindingFlags.Instance | BindingFlags.NonPublic); // Access protected method
-
-                if (setSkeletonTypeMethod != null)
-                {
-                    setSkeletonTypeMethod.Invoke(skeleton, new object[] { _skeletonType });
-                }
-                else
-                {
-                    Debug.LogError("SetSkeletonType() method not found");
-                }
-            }
-        }
-    }
+    // public void OnValidate()
+    // {
+    //     var skeleton = GetComponent<OVRSkeleton>();
+    //     if (skeleton != null)
+    //     {
+    //         if (skeleton.GetSkeletonType() != _skeletonType)
+    //         {
+    //             MethodInfo setSkeletonTypeMethod = typeof(OVRSkeleton).GetMethod("SetSkeletonType",
+    //                 BindingFlags.Instance | BindingFlags.NonPublic); // Access protected method
+    //
+    //             if (setSkeletonTypeMethod != null)
+    //             {
+    //                 setSkeletonTypeMethod.Invoke(skeleton, new object[] { _skeletonType });
+    //             }
+    //             else
+    //             {
+    //                 Debug.LogError("SetSkeletonType() method not found");
+    //             }
+    //         }
+    //     }
+    // }
 }
