@@ -28,22 +28,24 @@ public class OVRHandConverter : MonoBehaviour, HandSequence.SkeletonHandSequence
     internal OVRSkeleton.IOVRSkeletonDataProvider SearchSkeletonDataProvider()
     {
         GameObject obj = GameObject.Find("OVRHandPrefab");
-            
-        var providers = obj.GetComponentsInParent<OVRSkeleton.IOVRSkeletonDataProvider>(true);
+
+        var providers = obj.GetComponentsInParent<OVRSkeleton.IOVRSkeletonDataProvider>();
         foreach (var dataProvider in providers)
         {
             if (dataProvider.GetSkeletonType() == _skeletonType)
             {
+                Debug.Log("Found skeleton provider for converter");
                 return dataProvider;
             }
         }
         return null;
     }
 
-    public void OnValidate()
+    public void Awake()
     {
+        Debug.Log("OVR CONVERTER WAKE ***** ****");
         
-        if (!TryGetComponent<OVRSkeleton>(out OVRSkeleton skeleton))
+        /*if (!TryGetComponent<OVRSkeleton>(out OVRSkeleton skeleton))
         {
             Debug.LogWarning("No OVRSkeleton present to convert");
             return;
@@ -62,20 +64,18 @@ public class OVRHandConverter : MonoBehaviour, HandSequence.SkeletonHandSequence
             {
                 Debug.LogError("SetSkeletonType() method not found");
             }
-        }
-    }
-
-    private void Start()
-    {
+        }*/
+   
         if (_dataProvider == null)
         {
+            Debug.Log("looking for skeleton **** ");
             var foundDataProvider = SearchSkeletonDataProvider();
             if (foundDataProvider != null)
             {
                 _dataProvider = foundDataProvider;
                 if (_dataProvider is MonoBehaviour mb)
                 {
-                    Debug.Log($"Found IOVRSkeletonDataProvider reference in {mb.name} due to unassigned field.");
+                    Debug.Log($"Converter found IOVRSkeletonDataProvider reference in {mb.name} due to unassigned field.");
                 }
             }else{
                 Debug.LogWarning("didn't find a data provider for recording" ); 

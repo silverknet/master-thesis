@@ -21,7 +21,11 @@ public class SkeletonRenderer : MonoBehaviour
 
     private bool _isRendering = false;
     
-    private static readonly Quaternion _capsuleRotationOffset = Quaternion.Euler(0, 0, 90);
+    private static readonly Quaternion _capsuleRotationOffset = Quaternion.Euler(90, 0, 0);
+
+    public static GameObject _handGO;
+
+    
     
     void Start()
     {
@@ -35,7 +39,7 @@ public class SkeletonRenderer : MonoBehaviour
         private Vector3 _bonePosition;
         private BoneVisualization _parent;
         private Vector3 _delta;
-        public XRHandJointID ID;
+        public OVRHandData.ovrHandEnum ID;
         
         public Vector3 BonePosition { 
             get => _bonePosition;
@@ -51,43 +55,59 @@ public class SkeletonRenderer : MonoBehaviour
         private GameObject boneGO;
 
         public bool ShouldRender { get; set; }
-        public BoneVisualization(int id, BoneVisualization parent, Vector3 refPosition)
+        public BoneVisualization(int index, BoneVisualization parent, Vector3 refPosition, BoneVisualization wrist)
         {
-            ID = (XRHandJointID)(id+1);
+            ID = OVRHandData.GetJointIDfromIndex(index);
             _parent = parent;
             _bonePosition = refPosition;
             
             jointGO = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             jointGO.transform.localScale = new Vector3(0.005f, 0.005f, 0.005f);
+            jointGO.transform.SetParent(_handGO.transform, true);
             
+            //if (parent == null) return; // dont create bone if joint has no parent.
+            //Debug.Log("-- INIT BONE --");
+            //Debug.Log("type: " + OVRHandData.GetJointIndex(ID) + ". " + ID + " position: " + BonePosition);
             
-            if (parent == null) return; // dont create bone if joint has no parent.
-            Debug.Log("-- INIT BONE --");
-            Debug.Log("type: " + ID.ToIndex() + ". " + ID + " position: " + BonePosition);
-            
-            Debug.Log("parent type: " + _parent.ID.ToIndex() + ". " + _parent.ID + " position: " + _parent.BonePosition);
-            Debug.Log("delta: " + (_bonePosition - _parent.BonePosition));
-            Debug.Log("deltamag: " + (_bonePosition - _parent.BonePosition).magnitude);
-            Debug.Log(" -- end -- ");
+            //Debug.Log("parent type: " + _parent.ID.ToIndex() + ". " + _parent.ID + " position: " + _parent.BonePosition);
+            //Debug.Log("delta: " + (_bonePosition - _parent.BonePosition));
+            //Debug.Log("deltamag: " + (_bonePosition - _parent.BonePosition).magnitude);
+            //Debug.Log(" -- end -- ");
 
             boneGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             boneGO.name = ("bone-" + ID.ToString());
-            _delta = (_bonePosition - _parent.BonePosition);
-            float bone_length = _delta.magnitude;
-            boneGO.transform.localScale = new Vector3(0.001f, bone_length/2, 0.002f);
+
+            boneGO.transform.SetParent(_handGO.transform, true);
+
+            /*if(OVRHandData.hasParent.Contains(index)){
+                boneGO.transform.SetParent(parent.boneGO.transform, true);
+            }
+            if(OVRHandData.hasParentWrist.Contains(index)){
+                boneGO.transform.SetParent(wrist.boneGO.transform, true);
+            }*/
+            
+            float bone_length = 1.0f;
+            if (parent != null) {
+                _delta = _bonePosition - _parent.BonePosition;
+                bone_length = _delta.magnitude;
+            }
+            
+            boneGO.transform.localScale = new Vector3(0.002f, bone_length/2, 0.002f);
         }
 
         public void Update()
         {
 
+
             if (_parent != null)
             {
+                _delta = _bonePosition - _parent.BonePosition;
                 boneGO.transform.position = BonePosition - _delta/2;
-                boneGO.transform.rotation = BoneRotation*_capsuleRotationOffset;
+                boneGO.transform.localRotation = BoneRotation * _capsuleRotationOffset;
                 boneGO.SetActive(ShouldRender);
             }
             
-            jointGO.transform.position = BonePosition;
+            jointGO.transform.localPosition = BonePosition;
             
             jointGO.SetActive(ShouldRender);
             if (!ShouldRender) return;
@@ -107,17 +127,27 @@ public class SkeletonRenderer : MonoBehaviour
         _isRendering = true;
         _boneVisualizations = new List<BoneVisualization>();
         HandSequence.HandFrame data = _dataProvider.GetHandFrameData();
+        _handGO = new GameObject();
+
 
         for (int i = 0; i < data.BoneTranslations.Length; i++)
         {
-            Debug.Log("index: " + i);
-            Debug.Log("parent index: " + OpenXRHand.joints[i].Parent.ToIndex());
+            //Debug.Log("index: " + i);
+            //Debug.Log("parent: " + OVRHandData.jointsCustom[i].Parent + "parent index: " + (int)OVRHandData.jointsCustom[i].Parent);
+            //Debug.Log("parent index: " + OVRHandData.GetJointIndex(OVRHandData.jointsCustom[i].Parent));
+            
+            OVRHandData.ovrHandEnum parent = OVRHandData.jointsCustom[i].Parent;
 
-            XRHandJointID parent = OpenXRHand.joints[i].Parent;
+            //Debug.Log("inavlid parent: " + (parent == OVRHandData.ovrHandEnum.Invalid));
             
-            int bone_i = i==0?1:(i==1?0:i);
+            //int bone_i = i==0?1:(i==1?0:i);
             
-            _boneVisualizations.Add(new BoneVisualization(i, parent!=XRHandJointID.Invalid?_boneVisualizations[parent.ToIndex()]:null, OVRExtensions.FromFlippedZVector3f(new OVRPlugin.Vector3f{x = data.BoneTranslations[bone_i].x, y = data.BoneTranslations[bone_i].y, z = data.BoneTranslations[bone_i].z})));
+            _boneVisualizations.Add(new BoneVisualization(
+                i, 
+                parent!=OVRHandData.ovrHandEnum.Invalid?_boneVisualizations[OVRHandData.GetJointIndex(parent)]:null, 
+                OVRExtensions.FromFlippedZVector3f(new OVRPlugin.Vector3f{x = data.BoneTranslations[i].x, y = data.BoneTranslations[i].y, z = data.BoneTranslations[i].z}),
+                _boneVisualizations.Count>1?_boneVisualizations[1]:null
+                ));
         }
         
     }
@@ -164,15 +194,22 @@ public class SkeletonRenderer : MonoBehaviour
             Initialize();
         }
 
+        OVRPlugin.Vector3f handPosition = new OVRPlugin.Vector3f{x = data.RootPose.Position.x, y = data.RootPose.Position.y, z = data.RootPose.Position.z};
+        OVRPlugin.Quatf handRotation = new OVRPlugin.Quatf{x = data.RootPose.Orientation.x, y = data.RootPose.Orientation.y, z = data.RootPose.Orientation.z, w = data.RootPose.Orientation.w};
+        //Quaternion rot = handRotation.FromFlippedZQuatf();
+        //Vector3 pos = handPosition.FromFlippedZVector3f();
+
+        //_handGO.transform.localRotation = rot;
+        //_handGO.transform.localPosition = pos;
+        //_handGO.transform.localScale = Vector3.one * data.RootScale;
+
+        
+
         for (int i = 0; i < _boneVisualizations.Count; i++)
         {
-            int bone_i = i==0?1:(i==1?0:i);
-            _boneVisualizations[i].BonePosition = OVRExtensions.FromFlippedZVector3f(new OVRPlugin.Vector3f{x = data.BoneTranslations[i].x, y = data.BoneTranslations[i].y, z = data.BoneTranslations[i].z});
-            _boneVisualizations[i].BoneRotation = OVRExtensions.FromFlippedXQuatf(new OVRPlugin.Quatf
-            {
-                x = data.BoneRotations[i].x, y = data.BoneRotations[i].y, z = data.BoneRotations[i].z,
-                w = data.BoneRotations[i].w
-            });
+            //int bone_i = i==0?1:(i==1?0:i);
+            _boneVisualizations[i].BonePosition = (new OVRPlugin.Vector3f{x = data.BoneTranslations[i].x, y = data.BoneTranslations[i].y, z = data.BoneTranslations[i].z}).FromFlippedZVector3f();
+            _boneVisualizations[i].BoneRotation = (new OVRPlugin.Quatf{x = data.BoneRotations[i].x, y = data.BoneRotations[i].y, z = data.BoneRotations[i].z,w = data.BoneRotations[i].w}).FromFlippedZQuatf();
             _boneVisualizations[i].ShouldRender = data.IsDataValid;
             _boneVisualizations[i].Update();
         }

@@ -7,6 +7,13 @@ using UnityEngine;
 using UnityEditor.AssetImporters;
 using System.Collections.Generic;
 using UnityEditor;
+using Melanchall.DryWetMidi.Common;
+using Melanchall.DryWetMidi.Composing;
+using Melanchall.DryWetMidi.Core;
+using Melanchall.DryWetMidi.Interaction;
+using Melanchall.DryWetMidi.Multimedia;
+using Melanchall.DryWetMidi.Standards;
+
 
 
 /// <summary>
@@ -34,7 +41,6 @@ public class HandSequenceImporter : ScriptedImporter {
             
             string info = $"Reading particle set file {Path.GetFileName(ctx.assetPath)}";
             EditorUtility.DisplayProgressBar("Importing Hand Sequence", info, 0);
-
             int currentFrame = 0;
             while (true)
             {
@@ -45,9 +51,9 @@ public class HandSequenceImporter : ScriptedImporter {
                 HandSequence.HandFrame frame = new HandSequence.HandFrame();
 
                 var element = line.Trim().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(float.Parse).ToArray();
-                Debug.Log("size of list: " + element.Length);
                 HandSequence.posef tempRootPose = new HandSequence.posef();
 
+                
                 tempRootPose.Orientation.x = element[0];
                 tempRootPose.Orientation.y = element[1];
                 tempRootPose.Orientation.z = element[2];
@@ -86,11 +92,45 @@ public class HandSequenceImporter : ScriptedImporter {
 
                 frame.time = element[next_element + 1];
 
+                frame.HasMidi = element[next_element + 2] != 0f;
+                
+                if(frame.HasMidi){
+                    frame.MidiData = new List<HandSequence.SerializableNoteEvent>();
+
+                    next_element = next_element + 3;
+
+                    int noteOnCount = (int)element[next_element];
+                    next_element = next_element + 1;
+                    for(int i = 0; i < noteOnCount; i++){
+                        int noteNumber = (int)element[next_element + i * 2];
+                        int noteVelocity = (int)element[next_element + i * 2 + 1];
+                        var n = new NoteOnEvent((SevenBitNumber)noteNumber, (SevenBitNumber)noteVelocity);
+                        HandSequence.SerializableNoteEvent serializable_n = new HandSequence.SerializableNoteEvent(n);
+                        frame.MidiData.Add(serializable_n);
+                    }
+
+                    int noteOffCount = (int)element[next_element + noteOnCount * 2 ];
+                    next_element = next_element + noteOnCount * 2 + 1 ;
+                    for(int i = 0; i < noteOffCount; i++){
+                        int noteNumber = (int)element[next_element + i * 2];
+                        int noteVelocity = (int)element[next_element + i * 2 + 1];
+                        var n = new NoteOffEvent((SevenBitNumber)noteNumber, (SevenBitNumber)noteVelocity);
+                        HandSequence.SerializableNoteEvent serializable_n = new HandSequence.SerializableNoteEvent(n);
+                        frame.MidiData.Add(serializable_n);
+                    }
+                }
+
+                
+                Debug.Log(currentFrame);
+
                 handSequence.frames.Add(frame);
+                Debug.Log("new frame added");
+                Debug.Log("time: " + frame.time);
+                Debug.Log("example import: " + frame.BoneRotations[0].x);
                 
                 ++currentFrame;
-                if (currentFrame % 100 == 0) {
-                    EditorUtility.DisplayProgressBar("Particle Set Importer", info, file.Position / fileLength);
+                if (currentFrame % 20 == 0) {
+                    EditorUtility.DisplayProgressBar("Hand sequence Importer", info, file.Position / fileLength);
                 }
                 
             }

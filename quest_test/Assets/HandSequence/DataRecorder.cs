@@ -26,6 +26,7 @@ public class DataRecorder :  MonoBehaviour
     private OVRSkeleton.SkeletonType _skeletonType;
 
     private HandSequence.SkeletonHandSequenceProvider _dataProvider;
+    private MIDIDevice.MidiDataProvider _midiDataProvider;
 
     private bool _isRecording;
 
@@ -34,6 +35,8 @@ public class DataRecorder :  MonoBehaviour
     private bool _hasRecording;
 
     private List<HandSequence> _handSequenceRecordings;
+
+    public bool recordMidi;
     
     //Time in second where the last recording started
     private float _startTime;
@@ -46,6 +49,11 @@ public class DataRecorder :  MonoBehaviour
     {
         HandSequence.HandFrame data = _dataProvider.GetHandFrameData();
         data.time = Time.time - _startTime;
+        data.HasMidi = recordMidi;
+        if(recordMidi){
+            data.MidiData = _midiDataProvider.GetMidiData();
+        }
+    
         _handSequenceRecordings[_currentRecording].frames.Add(data);
     }
 
@@ -58,11 +66,13 @@ public class DataRecorder :  MonoBehaviour
                 //start new recording
                 _startTime = Time.time;
                 _hasRecording = true;
-                _handSequenceRecordings.Add(new HandSequence());
+                _handSequenceRecordings.Add(ScriptableObject.CreateInstance<HandSequence>());
+                Debug.Log(" * RECORDING STARTED *");
             }
             else
             {
                 //Stop recording
+                Debug.Log(" * RECORDING STOPPED *");
                 _currentRecording += 1;
             }
 
@@ -77,6 +87,7 @@ public class DataRecorder :  MonoBehaviour
     {
         _isRecording = false;
         _currentRecording = 0;
+        _handSequenceRecordings = new List<HandSequence>();
         
         if (_dataProvider == null)
         {
@@ -86,10 +97,24 @@ public class DataRecorder :  MonoBehaviour
                 _dataProvider = foundDataProvider;
                 if (_dataProvider is MonoBehaviour mb)
                 {
-                    Debug.Log($"Found IOVRSkeletonDataProvider reference in {mb.name} due to unassigned field.");
+                    Debug.Log($"Recorder Found IOVRSkeletonDataProvider reference in {mb.name} due to unassigned field.");
                 }
             }else{
                 Debug.LogWarning("didn't find a data provider for recording" ); 
+            }
+        }
+        if(_midiDataProvider == null && recordMidi){
+            var foundDataProvider = SearchMidiDataProvider();
+            if (foundDataProvider != null)
+            {
+                _midiDataProvider = foundDataProvider;
+                if (_midiDataProvider is MonoBehaviour mb)
+                {
+                    Debug.Log($"found mididataprovider");
+                }
+            }else{
+                Debug.LogWarning("didn't find a midi data provider for recording, uncheck recordMidi or add provider"); 
+                recordMidi = false;
             }
         }
     }
@@ -119,6 +144,16 @@ public class DataRecorder :  MonoBehaviour
             {
                 return dataProvider;
             }
+        }
+
+        return null;
+    }
+    internal MIDIDevice.MidiDataProvider SearchMidiDataProvider()
+    {
+        var oldProviders = gameObject.GetComponentsInParent<MIDIDevice.MidiDataProvider>();
+        foreach (var dataProvider in oldProviders)
+        {
+            return dataProvider;
         }
 
         return null;
