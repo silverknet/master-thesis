@@ -141,6 +141,29 @@ public static class OVRHandData
         new JointData(ovrHandEnum.LittleTip, ovrHandEnum.LittleDistal, Color.magenta)
     };
 
+    public static int GetFingertipIndex(OVRHandData.ovrHandEnum fingertip)
+    {
+        var fingertipIndices = new Dictionary<OVRHandData.ovrHandEnum, int>
+        {
+            { OVRHandData.ovrHandEnum.ThumbTip, 0 },
+            { OVRHandData.ovrHandEnum.IndexTip, 1 },
+            { OVRHandData.ovrHandEnum.MiddleTip, 2 },
+            { OVRHandData.ovrHandEnum.RingTip, 3 },
+            { OVRHandData.ovrHandEnum.LittleTip, 4 }
+        };
 
-    
+        return fingertipIndices.TryGetValue(fingertip, out int index) ? index : -1; // -1 for invalid input
+    }
+    public static OVRHandData.ovrHandEnum GetFingertipEnum(int index)
+    {
+        return index switch
+        {
+            0 => OVRHandData.ovrHandEnum.ThumbTip,
+            1 => OVRHandData.ovrHandEnum.IndexTip,
+            2 => OVRHandData.ovrHandEnum.MiddleTip,
+            3 => OVRHandData.ovrHandEnum.RingTip,
+            4 => OVRHandData.ovrHandEnum.LittleTip,
+            _ => OVRHandData.ovrHandEnum.ThumbTip // Default return value for invalid index
+        };
+    }
 }

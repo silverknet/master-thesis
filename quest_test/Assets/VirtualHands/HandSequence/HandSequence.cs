@@ -16,7 +16,6 @@ using Melanchall.DryWetMidi.Standards;
 [Serializable]
 public class HandSequence : ScriptableObject
 {
-     
      public interface SkeletonHandSequenceProvider
      {
           OVRSkeleton.SkeletonType GetSkeletonType();
@@ -89,6 +88,16 @@ public class HandSequence : ScriptableObject
           //public Vector3 getTransformedTranslation(int i){
           //     return OVRExtensions.FromFlippedZVector3f(new OVRPlugin.Vector3f{x = BoneTranslations[i].x, y = BoneTranslations[i].y, z = BoneTranslations[i].z});
           //}
+
+          public void RecalculateTip(int fingerNumber){
+               if(!IsDataValid || !IsDataHighConfidence)return;
+               int boneNumber = (int)OVRHandData.GetFingertipEnum(fingerNumber);
+               OVRHandData.JointData bone = OVRHandData.jointsCustom[boneNumber];
+
+               Vector3 thisPos = this.BoneTranslations[(int)bone.ID];
+               Vector3 parentPos = this.BoneTranslations[((int)bone.Parent)];
+               this.BoneRotations[boneNumber] = getBoneRotation(thisPos, parentPos);
+          }
 
           public static explicit operator OVRSkeleton.SkeletonPoseData(HandFrame obj)
           {

@@ -24,12 +24,21 @@ public class SkeletonRenderer : MonoBehaviour
     private static readonly Quaternion _capsuleRotationOffset = Quaternion.Euler(90, 0, 0);
 
     public static GameObject _handGO;
+
+    [SerializeField]
+    private bool _useAssist;
+
+    private SimpleFingerAssist _assist;
     
     void Start()
     {
         _dataProvider = SearchSkeletonDataProvider();
         if(_dataProvider == null){ Debug.Log("No data provider for renderer");
             return;
+        }
+
+        if(_useAssist){
+            _assist = gameObject.GetComponent<SimpleFingerAssist>();
         }
     }
 
@@ -154,6 +163,17 @@ public class SkeletonRenderer : MonoBehaviour
 
         return null;
     }
+    private void ApplyAssist(HandSequence.HandFrame data){
+        
+        var fingersDown = _assist.fingersDown;
+        // finger goes from 0 (thumb) to 4 (little), see GetFingerFromKey in handutil
+        foreach(var finger in fingersDown){
+            OVRHandData.ovrHandEnum joint = OVRHandData.GetFingertipEnum(finger);
+            data.BoneTranslations[(int)joint] += Vector3.down * 0.01f;
+            data.RecalculateTip(finger); // reculcualtes the rotation of only the effected finger
+        }
+        
+    }
     
     void Update()
     {
@@ -183,8 +203,9 @@ public class SkeletonRenderer : MonoBehaviour
         //_handGO.transform.localRotation = rot;
         //_handGO.transform.localPosition = pos;
         //_handGO.transform.localScale = Vector3.one * data.RootScale;
-
-        
+        if(_useAssist && _boneVisualizations[0].ShouldRender){
+            ApplyAssist(data);
+        }
 
         for (int i = 0; i < _boneVisualizations.Count; i++)
         {

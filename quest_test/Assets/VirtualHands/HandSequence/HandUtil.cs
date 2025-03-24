@@ -24,9 +24,6 @@ public class HandUtil : MonoBehaviour
     private static List<int> whiteKeys = new List<int> { 0, 2, 4, 5, 7, 9, 11 };
     private static List<int> blackKeys = new List<int> { 1, 3, 6, 8, 10 };
 
-    
-
-
     void Start()
     {
         

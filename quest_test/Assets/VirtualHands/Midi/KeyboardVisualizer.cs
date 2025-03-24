@@ -54,6 +54,12 @@ public class KeyboardVisualizer : MonoBehaviour
     private KeyboardDataProvider _dataProvider;
     private ConfigurePhysicalKeyboard _config;
     private HandUtil _handUtil;
+    private SimpleFingerAssist _fingerAssist;
+
+    private bool _useAssist;
+
+    private HashSet<int> _notesVisualized = new HashSet<int>();
+    private Dictionary<int, int> _keyFingerMap = new Dictionary<int, int>();
     
     void Start()
     {
@@ -61,6 +67,8 @@ public class KeyboardVisualizer : MonoBehaviour
         // there should only be one config in the project, there may be multiple providers
         SearchProvider();
         SearchConfig();
+        SearchAssist();
+
         _handUtil = GetComponent<HandUtil>();
         if(_handUtil == null)Debug.LogError("Hand util not found");
 
@@ -70,6 +78,8 @@ public class KeyboardVisualizer : MonoBehaviour
 
         _dataProvider.OnNoteUpdate += NoteChanged;
         _config.OnActiveConfigChanged += configUpdate;
+
+        _keyFingerMap = new Dictionary<int, int>();
     }
     void NoteChanged(NoteEvent _){
         if(_hasConfiguration){
@@ -82,9 +92,28 @@ public class KeyboardVisualizer : MonoBehaviour
             if(_dataProvider.GetNotesDown().Contains(i) && !keyVisualizations[i - leftKey].IsRendering()){
                 fingerThatPressed = _handUtil.GetFingerFromKey(i);
                 keyVisualizations[i - leftKey].color = OVRHandData.GetColorFromFinger(fingerThatPressed);
+
+                _keyFingerMap[i] = fingerThatPressed;
+                _fingerAssist.AddFinger(fingerThatPressed);
             }
+
+            if(_useAssist){
+                if(!_dataProvider.GetNotesDown().Contains(i)){
+                    // On key release
+                    if(_notesVisualized.Contains(i)){
+                        var fingerThatReleased = _keyFingerMap[i];
+                        _fingerAssist.RemoveFinger(fingerThatReleased);
+                        _keyFingerMap.Remove(i);
+                    }
+                }
+            }
+
+            
             keyVisualizations[i - leftKey].Update(_dataProvider.GetNotesDown().Contains(i));
         }
+
+        // TODO, could be problem if the hash set is passed by reference, don't think it is though
+        _notesVisualized = _dataProvider.GetNotesDown();
         yield return null;
     }
 
@@ -210,6 +239,19 @@ public class KeyboardVisualizer : MonoBehaviour
             if(config != null){
                 _config = config;
             }else{Debug.LogError("No config found");}
+        }
+    }
+
+    void SearchAssist(){
+        if(_fingerAssist == null) {
+            var fingerAssist = GetComponent<SimpleFingerAssist>();
+            if(fingerAssist != null){
+                _fingerAssist = fingerAssist;
+                _useAssist = true;
+            }else{
+                Debug.LogWarning("No assist found, continuing without it");
+                _useAssist = false;
+            }
         }
     }
 
