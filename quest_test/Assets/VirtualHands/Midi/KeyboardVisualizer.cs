@@ -136,7 +136,6 @@ public class KeyboardVisualizer : MonoBehaviour
             _plane.transform.rotation = Quaternion.LookRotation(keyboardVisualizer.forwardVector);
             _plane.transform.position = _keyPosition + keyVector/2.0f + Vector3.Normalize(keyboardVisualizer.forwardVector) * keyVector.magnitude;
 
-            Debug.Log("vis pos:" + _keyPosition);
         }
 
         public void destroy(){

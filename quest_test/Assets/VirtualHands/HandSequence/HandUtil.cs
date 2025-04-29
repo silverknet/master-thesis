@@ -128,6 +128,7 @@ public class HandUtil : MonoBehaviour
     //public int GetFingerFromKey(int key){
     //    return 50;
     //}
+   
 
     public int GetFingerFromKey(int key){
         Vector3[] BoneTranslations = _dataProvider.GetHandFrameData().BoneTranslations;
@@ -201,14 +202,14 @@ public class HandUtil : MonoBehaviour
         
         keyPos = _m.MultiplyPoint(keyPos);
    
-        /*int a = ClosestFinger1D(keyPos, transformedFingerPositions);
+        int a = ClosestFinger1D(keyPos, transformedFingerPositions);
         int b = ClosestFinger2D(keyPos, transformedFingerPositions);
         int c = ClosestFinger3D(keyPos, transformedFingerPositions);
 
-        return Mode(a, b, c);*/
+        return Mode(a, b, c);
         
 
-        int a = ClosestFinger1D(keyPos, transformedFingerPositions);
+        /* a = ClosestFinger1D(keyPos, transformedFingerPositions);
         int b = ClosestFinger2D(keyPos, transformedFingerPositions);
         int c = ClosestFinger3D(keyPos, transformedFingerPositions);
         Vector3 keyPos_P3 = getMidPositionFromKey(key, heightMode:0, forwardMode:3);
@@ -219,11 +220,11 @@ public class HandUtil : MonoBehaviour
         if (blackKeys.Contains(key % 12)) return blackKeyPoint;
         else return Mode(a, b, c);
         */
-        
+        /*
         //Filtered
         List<int> filteredPoints = FilterPoints(transformedFingerPositions, keyPos, blackKeys.Contains(key % 12), 0.1f);
         if (filteredPoints.Count != 0) return ClosestFinger1D(keyPos, transformedFingerPositions, filteredPoints);
-        else return c;
+        else return c;*/
 
         //return ClosestFinger1D(keyPos, transformedFingerPositions);
     }
