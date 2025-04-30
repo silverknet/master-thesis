@@ -82,11 +82,11 @@ KeyboardVisualizer.KeyboardDataProvider
                 break;
             case PlaybackState.Rewind:
                 _progressBar.SetTextLeft("Rewinding ⏪");
-                UpdatePlaybackSpeed(-1.0f);
+                UpdatePlaybackSpeed(-2.0f);
                 break;
             case PlaybackState.FastForward:
                 _progressBar.SetTextLeft("Fast Forward ⏩");
-                UpdatePlaybackSpeed(2.0f);
+                UpdatePlaybackSpeed(2.5f);
                 break; 
             case PlaybackState.SlowMo:
                 _progressBar.SetTextLeft("Slow Motion 🐢");
@@ -179,6 +179,10 @@ KeyboardVisualizer.KeyboardDataProvider
         _lastMidiDataRead = _playbackTime;
             
         return oldBuffer;
+    }
+    public void ClearMIDIBuffer(){
+        _midiEventBuffer = new List<HandSequence.SerializableNoteEvent>();
+        _lastMidiDataRead = _playbackTime;
     }
 
     private void StartPlayback()
@@ -471,11 +475,13 @@ KeyboardVisualizer.KeyboardDataProvider
         {
             StartPlayback();
         }*/
+        Debug.Log("start is running");
         
     }
 
     public void OverrideMainSequence(HandSequence s)
     {
+        _sequence = new HandSequence();
         _sequence = s.DeepCopy();
         _midiEventBuffer = new List<HandSequence.SerializableNoteEvent>();
 
@@ -484,6 +490,7 @@ KeyboardVisualizer.KeyboardDataProvider
         _framesAmount = _sequence.frames.Count;
 
         isInitialized = _sequence.hasData();
+        _config.ForceConfigUpdate();
         Debug.Log("Override complete");
     }
 

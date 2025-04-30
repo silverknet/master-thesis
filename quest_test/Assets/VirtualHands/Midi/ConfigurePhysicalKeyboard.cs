@@ -193,6 +193,10 @@ public class ConfigurePhysicalKeyboard : MonoBehaviour
          yield return null;
     }
 
+    public void ForceConfigUpdate(){
+        StartCoroutine(updateConfig());
+    }
+
 
     private IEnumerator updateConfig(){
         Vector3 a = LeftConfigSphere.transform.position;

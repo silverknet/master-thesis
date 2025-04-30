@@ -2436,7 +2436,7 @@ PrefabInstance:
     - target: {fileID: 5874509026318139697, guid: 10bdb93c8540e09458918e6069fd52f4,
         type: 3}
       propertyPath: _fileName
-      value: recording1
+      value: test_1
       objectReference: {fileID: 0}
     - target: {fileID: 5874509026318139697, guid: 10bdb93c8540e09458918e6069fd52f4,
         type: 3}
@@ -2474,10 +2474,21 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4080136121806183643, guid: 99056047d9acfd64ab4cf2461b9e0aca,
         type: 3}
+      propertyPath: _importSequence
+      value: 
+      objectReference: {fileID: -4060129950355911849, guid: 89cc2b43ec6bc8540b0f1b08d0c96a95,
+        type: 3}
+    - target: {fileID: 4080136121806183643, guid: 99056047d9acfd64ab4cf2461b9e0aca,
+        type: 3}
       propertyPath: progressBarPrefab
       value: 
       objectReference: {fileID: 8180707522254626348, guid: 0eeb50c61da4c174391002c096f8c439,
         type: 3}
+    - target: {fileID: 4080136121806183643, guid: 99056047d9acfd64ab4cf2461b9e0aca,
+        type: 3}
+      propertyPath: _interpolationMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8157698343606593442, guid: 99056047d9acfd64ab4cf2461b9e0aca,
         type: 3}
       propertyPath: m_Name

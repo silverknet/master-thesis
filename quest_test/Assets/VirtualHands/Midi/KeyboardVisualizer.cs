@@ -168,19 +168,19 @@ public class KeyboardVisualizer : MonoBehaviour
             switch(scaleKey){
                 case 1:
                     midPos = oneKeyVector * 1;
-                    return midPos + (forwardVector * blackKeyOffset) + Vector3.up * blackKeyHeight - oneKeyVector * 0.75f;
+                    return midPos + (forwardVector * blackKeyOffset) + Vector3.up * blackKeyHeight - oneKeyVector * 0.62f;
                 case 3:
                     midPos = oneKeyVector * 2;
-                    return midPos + (forwardVector * blackKeyOffset) + Vector3.up * blackKeyHeight - oneKeyVector * 0.5f;
+                    return midPos + (forwardVector * blackKeyOffset) + Vector3.up * blackKeyHeight - oneKeyVector * 0.46f;
                 case 6:
                     midPos = oneKeyVector * 4;
-                    return midPos + (forwardVector * blackKeyOffset) + Vector3.up * blackKeyHeight - oneKeyVector * 0.5f;
+                    return midPos + (forwardVector * blackKeyOffset) + Vector3.up * blackKeyHeight - oneKeyVector * 0.6f;
                 case 8:
                     midPos = oneKeyVector * 5;
                     return midPos + (forwardVector * blackKeyOffset) + Vector3.up * blackKeyHeight - oneKeyVector * 0.5f;
                 case 10:
                     midPos = oneKeyVector * 6;
-                    return midPos + (forwardVector * blackKeyOffset) + Vector3.up * blackKeyHeight - oneKeyVector * 0.5f;
+                    return midPos + (forwardVector * blackKeyOffset) + Vector3.up * blackKeyHeight - oneKeyVector * 0.52f;
                 default:
                 return Vector3.zero;
             }

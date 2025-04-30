@@ -104,8 +104,8 @@ public class DataRecorder :  MonoBehaviour
 
     IEnumerator WaitForExportSave()
     {
-        yield return new WaitForSeconds(3.0f);
         _playbackGo.SetActive(true);
+        yield return new WaitForSeconds(1.0f);
         SkeletonPlayback pb = _playbackGo.GetComponent<SkeletonPlayback>();
         pb.OverrideMainSequence(_handSequenceRecordings[0]);
         gameObject.SetActive(false);
@@ -179,6 +179,9 @@ public class DataRecorder :  MonoBehaviour
                     _handSequenceRecordings.Add(ScriptableObject.CreateInstance<HandSequence>());
                     Debug.Log(" * RECORDING STARTED *");
                     CreateProgressBar(_config.activeConfig);
+
+                    _playbackGo.GetComponent<SkeletonPlayback>().ClearMIDIBuffer();
+
 
                 }
                 else
