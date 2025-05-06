@@ -585,7 +585,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 368020049}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b4a376bdd4649a64b99103e0bc3bc675, type: 3}
   m_Name: 
@@ -2431,12 +2431,12 @@ PrefabInstance:
     - target: {fileID: 2369785792102157585, guid: 10bdb93c8540e09458918e6069fd52f4,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5874509026318139697, guid: 10bdb93c8540e09458918e6069fd52f4,
         type: 3}
       propertyPath: _fileName
-      value: test_1
+      value: PracticeScaleGMajor
       objectReference: {fileID: 0}
     - target: {fileID: 5874509026318139697, guid: 10bdb93c8540e09458918e6069fd52f4,
         type: 3}
@@ -2476,7 +2476,7 @@ PrefabInstance:
         type: 3}
       propertyPath: _importSequence
       value: 
-      objectReference: {fileID: -4060129950355911849, guid: 89cc2b43ec6bc8540b0f1b08d0c96a95,
+      objectReference: {fileID: -4060129950355911849, guid: 0da559961dd4a06409c8fbb1ece68fa8,
         type: 3}
     - target: {fileID: 4080136121806183643, guid: 99056047d9acfd64ab4cf2461b9e0aca,
         type: 3}
@@ -2497,7 +2497,7 @@ PrefabInstance:
     - target: {fileID: 8157698343606593442, guid: 99056047d9acfd64ab4cf2461b9e0aca,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8226942260989090325, guid: 99056047d9acfd64ab4cf2461b9e0aca,
         type: 3}
