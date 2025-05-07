@@ -98,6 +98,41 @@ public class HandSequenceImporter : ScriptedImporter {
                     frame.MidiData = new List<HandSequence.SerializableNoteEvent>();
 
                     next_element = next_element + 3;
+                    
+                    //bad error handling
+                    /*
+                    bool valid = true;
+                    int checkStart = next_element;
+                    int checkIndex = checkStart + 3;
+                    if (checkIndex >= element.Length)
+                        valid = false;
+                    if (valid)
+                    {
+                        int countOn = (int)element[checkIndex];
+                        checkIndex += 1;
+
+                        if (checkIndex + countOn * 2 >= element.Length)
+                            valid = false;
+                        else
+                        {
+                            int countOffIndex = checkIndex + countOn * 2;
+                            if (countOffIndex >= element.Length)
+                                valid = false;
+                            else
+                            {
+                                int countOff = (int)element[countOffIndex];
+                                int endIndex = countOffIndex + 1 + countOff * 2;
+                                if (endIndex > element.Length)
+                                    valid = false;
+                            }
+                        }
+                    }
+
+                    if (!valid)
+                        goto SkipMidi;
+                    */
+                    // end of bad error handling
+                   
 
                     int noteOnCount = (int)element[next_element];
                     next_element = next_element + 1;
@@ -119,6 +154,7 @@ public class HandSequenceImporter : ScriptedImporter {
                         frame.MidiData.Add(serializable_n);
                     }
                 }
+                SkipMidi:
 
                 
                 //Debug.Log(currentFrame);
