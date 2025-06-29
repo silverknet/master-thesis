@@ -12,3 +12,5 @@ _inputDevice = InputDevice.GetByName("Nord Electro 5 MIDI");
 In KeyboardConfiguration you map which keys are used for different functions. 
 There you also specify the number of key you want to use. I used 17 between C3 and E4, which i know work. I haven't checked
 for every bug here, so it might need some tweaking to get right.
+
+Recordings are saved as .hseq files in te recording directory. Add them in the playback object in the inspector to play them.
